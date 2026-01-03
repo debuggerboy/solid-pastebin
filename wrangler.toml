@@ -1,0 +1,15 @@
+name = "solid-pastebin"
+main = "src/worker.ts"
+compatibility_date = "2024-01-03"
+
+# REMOVE the [site] section completely
+# [site]
+# bucket = "./dist"
+
+[[kv_namespaces]]
+binding = "PASTES"
+id = "10c2d582e3ed45f79e1bb482dcd55023"
+
+[dev]
+port = 3000
+ip = "0.0.0.0"
