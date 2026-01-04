@@ -3,11 +3,14 @@ import { createStore } from 'solid-js/store';
 
 type Paste = {
   id: string;
+  name: string;
   content: string;
   language: string;
   created_at: number;
   expires_at: number;
 };
+
+const [pasteName, setPasteName] = createSignal('');
 
 function App() {
   // Read initial paste ID from URL or localStorage
@@ -85,26 +88,28 @@ function App() {
       setError('Content cannot be empty');
       return;
     }
-
+  
     setLoading(true);
     setError('');
-
+  
     try {
       const res = await fetch('/api/pastes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          name: pasteName().trim() || `Paste ${new Date().toLocaleTimeString()}`, // Default name
           content: content(),
           language: language(),
         }),
       });
-
+  
       if (res.ok) {
         const data = await res.json();
         // Update recent pastes list
         setPastes([data, ...pastes]);
         // Clear form
         setContent('');
+        setPasteName('');
         setLanguage('text');
         // Show the new paste
         setViewingPaste(data);
@@ -210,6 +215,30 @@ function App() {
         }}>
           <h2 style={{ 'margin-bottom': '1rem', color: '#333' }}>Create New Paste</h2>
           <form onSubmit={handleSubmit} style={{ display: 'flex', 'flex-direction': 'column', gap: '1rem' }}>
+            <div>
+              <label for="pasteName" style={{ 
+                display: 'block', 
+                'margin-bottom': '0.5rem',
+                'font-weight': '500'
+              }}>
+                Paste Name (optional):
+              </label>
+              <input
+                type="text"
+                id="pasteName"
+                placeholder="My Code Snippet"
+                value={pasteName()}
+                onInput={(e) => setPasteName(e.currentTarget.value)}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem',
+                  'border': '1px solid #ddd',
+                  'border-radius': '4px',
+                  'font-size': '1rem',
+                  'margin-bottom': '1rem'
+                }}
+              />
+            </div>
             <div>
               <label for="language" style={{ 
                 display: 'block', 
@@ -347,143 +376,158 @@ function App() {
                       <div style={{ 
                         border: '1px solid #e0e0e0', 
                         padding: '1rem',
-                        'border-radius': '6px',
-                        'transition': 'border-color 0.2s',
-                        ':hover': {
-                          'border-color': '#007acc'
-                        }
+                        'border-radius': '4px',
+                        'margin-bottom': '1rem'
                       }}>
                         <div style={{ 
-                          display: 'flex', 
-                          'justify-content': 'space-between',
-                          'align-items': 'center',
-                          'margin-bottom': '0.75rem'
+                          'margin-bottom': '0.5rem',
+                          'font-weight': '500',
+                          'font-size': '1.1rem',
+                          'color': '#333'
                         }}>
-                          <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
-                            <span style={{
-                              'background': '#e3f2fd',
-                              color: '#007acc',
-                              padding: '0.25rem 0.5rem',
-                              'border-radius': '4px',
-                              'font-size': '0.875rem',
-                              'font-weight': '500'
-                            }}>
-                              {paste.language.toUpperCase()}
-                            </span>
-                            <small style={{ color: '#666' }}>
-                              {getTimeRemaining(paste.expires_at)}
+                          {paste.name || `Paste ${paste.id.substring(0, 4)}`}
+                        </div>
+                        <div style={{ 
+                          border: '1px solid #e0e0e0', 
+                          padding: '1rem',
+                          'border-radius': '6px',
+                          'transition': 'border-color 0.2s',
+                          ':hover': {
+                            'border-color': '#007acc'
+                          }
+                        }}>
+                          <div style={{ 
+                            display: 'flex', 
+                            'justify-content': 'space-between',
+                            'align-items': 'center',
+                            'margin-bottom': '0.75rem'
+                          }}>
+                            <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
+                              <span style={{
+                                'background': '#e3f2fd',
+                                color: '#007acc',
+                                padding: '0.25rem 0.5rem',
+                                'border-radius': '4px',
+                                'font-size': '0.875rem',
+                                'font-weight': '500'
+                              }}>
+                                {paste.language.toUpperCase()}
+                              </span>
+                              <small style={{ color: '#666' }}>
+                                {getTimeRemaining(paste.expires_at)}
+                              </small>
+                            </div>
+                            <small style={{ color: '#888' }}>
+                              {formatDate(paste.created_at)}
                             </small>
                           </div>
-                          <small style={{ color: '#888' }}>
-                            {formatDate(paste.created_at)}
-                          </small>
-                        </div>
-                        
-                        <div style={{ 
-                          'max-height': '120px',
-                          overflow: 'hidden',
-                          'position': 'relative',
-                          'margin-bottom': '0.75rem'
-                        }}>
-                          <pre style={{ 
-                            margin: 0, 
-                            'white-space': 'pre-wrap',
-                            'word-break': 'break-word',
-                            'font-family': '"Courier New", monospace',
-                            'font-size': '13px',
-                            color: '#333'
+                          
+                          <div style={{ 
+                            'max-height': '120px',
+                            overflow: 'hidden',
+                            'position': 'relative',
+                            'margin-bottom': '0.75rem'
                           }}>
-                            {paste.content.substring(0, 300)}
-                            {paste.content.length > 300 && '...'}
-                          </pre>
-                          {paste.content.length > 300 && (
-                            <div style={{
-                              position: 'absolute',
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              height: '40px',
-                              background: 'linear-gradient(transparent, white)'
-                            }} />
-                          )}
-                        </div>
-                        
-                        <div style={{ 
-                          display: 'flex', 
-                          gap: '0.5rem',
-                          'flex-wrap': 'wrap'
-                        }}>
-                          <button 
-                            onClick={() => setViewingPaste(paste)}
-                            style={{ 
-                              padding: '0.375rem 0.75rem',
-                              'background': '#f0f0f0',
-                              border: '1px solid #ddd',
-                              'border-radius': '4px',
-                              cursor: 'pointer',
-                              'font-size': '0.875rem',
-                              'transition': 'background 0.2s',
-                              ':hover': {
-                                background: '#e0e0e0'
-                              }
-                            }}
-                          >
-                            👁️ View
-                          </button>
-                          <button 
-                            onClick={() => copyToClipboard(`${window.location.origin}/${paste.id}`)}
-                            style={{ 
-                              padding: '0.375rem 0.75rem',
-                              'background': '#e8f5e9',
-                              border: '1px solid #c8e6c9',
-                              color: '#2e7d32',
-                              'border-radius': '4px',
-                              cursor: 'pointer',
-                              'font-size': '0.875rem',
-                              'transition': 'background 0.2s',
-                              ':hover': {
-                                background: '#dcedc8'
-                              }
-                            }}
-                          >
-                            📋 Copy URL
-                          </button>
-                          <button 
-                            onClick={() => copyToClipboard(paste.content)}
-                            style={{ 
-                              padding: '0.375rem 0.75rem',
-                              'background': '#fff3e0',
-                              border: '1px solid #ffe0b2',
-                              color: '#ef6c00',
-                              'border-radius': '4px',
-                              cursor: 'pointer',
-                              'font-size': '0.875rem',
-                              'transition': 'background 0.2s',
-                              ':hover': {
-                                background: '#ffecb3'
-                              }
-                            }}
-                          >
-                            📝 Copy Text
-                          </button>
-                          <button 
-                            onClick={() => deletePaste(paste.id)}
-                            style={{ 
-                              padding: '0.375rem 0.75rem',
-                              'background': '#ffebee',
-                              border: '1px solid #ffcdd2',
-                              color: '#c62828',
-                              'border-radius': '4px',
-                              cursor: 'pointer',
-                              'font-size': '0.875rem',
-                              'transition': 'background 0.2s',
-                              ':hover': {
-                                background: '#ffcdd2'
-                              }
-                            }}
-                          >
-                            🗑️ Delete
-                          </button>
+                            <pre style={{ 
+                              margin: 0, 
+                              'white-space': 'pre-wrap',
+                              'word-break': 'break-word',
+                              'font-family': '"Courier New", monospace',
+                              'font-size': '13px',
+                              color: '#333'
+                            }}>
+                              {paste.content.substring(0, 300)}
+                              {paste.content.length > 300 && '...'}
+                            </pre>
+                            {paste.content.length > 300 && (
+                              <div style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                height: '40px',
+                                background: 'linear-gradient(transparent, white)'
+                              }} />
+                            )}
+                          </div>
+                          
+                          <div style={{ 
+                            display: 'flex', 
+                            gap: '0.5rem',
+                            'flex-wrap': 'wrap'
+                          }}>
+                            <button 
+                              onClick={() => setViewingPaste(paste)}
+                              style={{ 
+                                padding: '0.375rem 0.75rem',
+                                'background': '#f0f0f0',
+                                border: '1px solid #ddd',
+                                'border-radius': '4px',
+                                cursor: 'pointer',
+                                'font-size': '0.875rem',
+                                'transition': 'background 0.2s',
+                                ':hover': {
+                                  background: '#e0e0e0'
+                                }
+                              }}
+                            >
+                              👁️ View
+                            </button>
+                            <button 
+                              onClick={() => copyToClipboard(`${window.location.origin}/${paste.id}`)}
+                              style={{ 
+                                padding: '0.375rem 0.75rem',
+                                'background': '#e8f5e9',
+                                border: '1px solid #c8e6c9',
+                                color: '#2e7d32',
+                                'border-radius': '4px',
+                                cursor: 'pointer',
+                                'font-size': '0.875rem',
+                                'transition': 'background 0.2s',
+                                ':hover': {
+                                  background: '#dcedc8'
+                                }
+                              }}
+                            >
+                              📋 Copy URL
+                            </button>
+                            <button 
+                              onClick={() => copyToClipboard(paste.content)}
+                              style={{ 
+                                padding: '0.375rem 0.75rem',
+                                'background': '#fff3e0',
+                                border: '1px solid #ffe0b2',
+                                color: '#ef6c00',
+                                'border-radius': '4px',
+                                cursor: 'pointer',
+                                'font-size': '0.875rem',
+                                'transition': 'background 0.2s',
+                                ':hover': {
+                                  background: '#ffecb3'
+                                }
+                              }}
+                            >
+                              📝 Copy Text
+                            </button>
+                            <button 
+                              onClick={() => deletePaste(paste.id)}
+                              style={{ 
+                                padding: '0.375rem 0.75rem',
+                                'background': '#ffebee',
+                                border: '1px solid #ffcdd2',
+                                color: '#c62828',
+                                'border-radius': '4px',
+                                cursor: 'pointer',
+                                'font-size': '0.875rem',
+                                'transition': 'background 0.2s',
+                                ':hover': {
+                                  background: '#ffcdd2'
+                                }
+                              }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -530,6 +574,17 @@ function App() {
                     gap: '1rem',
                     'font-size': '0.9rem'
                   }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      'justify-content': 'space-between',
+                      'align-items': 'center',
+                      'margin-bottom': '1rem'
+                    }}>
+                      <h2 style={{ color: '#333', margin: 0 }}>
+                        {paste().name || `Paste: ${paste().id}`}
+                      </h2>
+                      <button onClick={() => setViewingPaste(null)}>← Back</button>
+                    </div>
                     <div>
                       <strong style={{ color: '#666' }}>Language:</strong>
                       <div style={{ 

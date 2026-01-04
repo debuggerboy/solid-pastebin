@@ -6,6 +6,7 @@ export interface Env {
 
 interface PasteData {
   id: string;
+  name: string;
   content: string;
   language: string;
   created_at: number;
@@ -88,7 +89,7 @@ const HTML = `<!DOCTYPE html>
       color: #666;
       margin-bottom: 24px;
     }
-    select, textarea {
+    input, select, textarea {
       width: 100%;
       padding: 12px;
       border: 2px solid #e0e0e0;
@@ -140,6 +141,12 @@ const HTML = `<!DOCTYPE html>
     <div class="main-content">
       <div class="card">
         <h2>Create New Paste</h2>
+        <input 
+          type="text" 
+          id="pasteName" 
+          placeholder="Paste Name (optional)" 
+          style="margin-bottom: 16px;"
+        >
         <select id="language">
           <option value="text">Plain Text</option>
           <option value="javascript">JavaScript</option>
@@ -163,6 +170,7 @@ const HTML = `<!DOCTYPE html>
     async function createPaste() {
       const content = document.getElementById('content').value;
       const language = document.getElementById('language').value;
+      const name = document.getElementById('pasteName').value;
       const result = document.getElementById('result');
       
       if (!content.trim()) {
@@ -178,13 +186,14 @@ const HTML = `<!DOCTYPE html>
         const res = await fetch('/api/pastes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content, language })
+          body: JSON.stringify({ name, content, language })
         });
         
         if (res.ok) {
           const data = await res.json();
           result.innerHTML = '<p style="color: #2e7d32;">✅ Paste created! <a href="/' + data.id + '" style="color: #007acc;">View paste</a></p>';
           document.getElementById('content').value = '';
+          document.getElementById('pasteName').value = '';
           loadPastes();
         } else {
           result.innerHTML = '<p style="color: #c62828;">Failed to create paste</p>';
@@ -216,8 +225,14 @@ const HTML = `<!DOCTYPE html>
               
             return '<div class="paste-item">' +
               '<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">' +
-                '<strong>' + paste.language.toUpperCase() + '</strong>' +
+                '<strong>' + (paste.name || 'Untitled') + '</strong>' +
                 '<small>' + new Date(paste.created_at).toLocaleDateString() + '</small>' +
+              '</div>' +
+              '<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">' +
+                '<span style="background: #e3f2fd; color: #007acc; padding: 2px 8px; border-radius: 4px; font-size: 0.9rem;">' + 
+                  paste.language.toUpperCase() + 
+                '</span>' +
+                '<small style="color: #666;">Expires: ' + new Date(paste.expires_at).toLocaleDateString() + '</small>' +
               '</div>' +
               '<div class="paste-content">' + escapeHtml(shortContent) + '</div>' +
               '<div style="display: flex; gap: 8px;">' +
@@ -474,11 +489,12 @@ async function servePastePage(pasteId: string, env: Env): Promise<Response> {
 <body>
   <div class="container">
     <div class="header">
-      <h1>📝 Paste: ${pasteId}</h1>
+      <h1>📝 ${paste.name || `Paste: ${pasteId}`}</h1> 
       <button class="back-btn" onclick="window.location.href='/'">← Back</button>
     </div>
     
     <div class="paste-info">
+      <p><strong>Name:</strong> ${paste.name || 'Untitled'}</p>
       <p><strong>Language:</strong> ${paste.language.toUpperCase()}</p>
       <p><strong>Created:</strong> ${new Date(paste.created_at).toLocaleString()}</p>
       <p><strong>Expires:</strong> ${new Date(paste.expires_at).toLocaleString()}</p>
@@ -569,7 +585,7 @@ async function handleApiRequest(request: Request, env: Env, path: string): Promi
   
   // POST /api/pastes
   if (path === '/api/pastes' && request.method === 'POST') {
-    const body = await request.json<{ content: string; language: string }>();
+    const body = await request.json<{ name?: string; content: string; language: string }>();
     
     const pasteId = generateId();
     const now = Date.now();
@@ -577,6 +593,7 @@ async function handleApiRequest(request: Request, env: Env, path: string): Promi
     
     const paste: PasteData = {
       id: pasteId,
+      name: body.name || `Paste ${new Date(now).toLocaleTimeString()}`,
       content: body.content,
       language: body.language || 'text',
       created_at: now,
