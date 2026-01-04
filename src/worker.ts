@@ -32,83 +32,112 @@ async function cleanupExpiredPastes(env: Env) {
   }
 }
 
-// HTML template as a regular string (not template literal)
+// HTML template as a regular string
 const HTML = `<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Solid Pastebin</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: #f5f5f5;
-        min-height: 100vh;
-        padding: 2rem;
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Solid Pastebin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    @media (min-width: 768px) {
+      body { padding: 24px; }
+    }
+    .container { 
+      max-width: 1400px; 
+      margin: 0 auto;
+    }
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    @media (min-width: 1024px) {
+      .main-content {
+        flex-direction: row;
       }
-      .container { 
-        max-width: 1200px; 
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
+      .main-content > * {
+        flex: 1;
       }
-      .card {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-      h1 { color: #333; margin-bottom: 1rem; }
-      h2 { color: #444; margin-bottom: 1rem; }
-      textarea, input, select {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 1rem;
-        margin-bottom: 1rem;
-      }
-      textarea { 
-        font-family: 'Courier New', monospace;
-        min-height: 300px;
-        resize: vertical;
-      }
-      button {
-        background: #007acc;
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 500;
-      }
-      button:hover { background: #005fa3; }
-      .paste-item {
-        border: 1px solid #e0e0e0;
-        padding: 1rem;
-        border-radius: 6px;
-        margin-bottom: 1rem;
-      }
-      .paste-content {
-        font-family: monospace;
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-        max-height: 200px;
-        overflow: auto;
-      }
-    </style>
-  </head>
-  <body>
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    @media (min-width: 768px) {
+      .card { padding: 24px; }
+    }
+    h1 { 
+      color: #333; 
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+    @media (min-width: 768px) {
+      h1 { font-size: 32px; }
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 24px;
+    }
+    select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 16px;
+      font-family: inherit;
+    }
+    textarea { 
+      min-height: 200px;
+      resize: vertical;
+      font-family: 'Courier New', monospace;
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      button { width: auto; }
+    }
+    .paste-item {
+      border: 1px solid #e0e0e0;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .paste-content {
+      font-family: monospace;
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 12px 0;
+      max-height: 100px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
     <h1>📝 Solid Pastebin</h1>
-    <p>Pastes automatically deleted after 3 days</p>
+    <p class="subtitle">Pastes automatically deleted after 3 days</p>
     
-    <div class="container">
-      <!-- Create Paste -->
+    <div class="main-content">
       <div class="card">
         <h2>Create New Paste</h2>
         <select id="language">
@@ -117,113 +146,122 @@ const HTML = `<!DOCTYPE html>
           <option value="python">Python</option>
           <option value="html">HTML</option>
           <option value="css">CSS</option>
-          <option value="json">JSON</option>
         </select>
         <textarea id="content" placeholder="Paste your content here..."></textarea>
         <button onclick="createPaste()">Create Paste</button>
         <div id="result"></div>
       </div>
       
-      <!-- Recent Pastes -->
       <div class="card">
         <h2>Recent Pastes</h2>
-        <div id="pastes"></div>
+        <div id="pastes">Loading...</div>
       </div>
     </div>
-    
-    <script>
-      async function createPaste() {
-        const content = document.getElementById('content').value;
-        const language = document.getElementById('language').value;
-        const result = document.getElementById('result');
-        
-        if (!content.trim()) {
-          result.innerHTML = '<p style="color: #c62828;">Please enter content</p>';
-          return;
-        }
-        
-        result.innerHTML = '<p>Creating...</p>';
-        
-        try {
-          const res = await fetch('/api/pastes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content, language })
-          });
-          
-          if (res.ok) {
-            const data = await res.json();
-            result.innerHTML = '<p style="color: #2e7d32;">✅ Paste created! <a href="/' + data.id + '" style="color: #007acc;">View paste</a></p>';
-            document.getElementById('content').value = '';
-            loadPastes();
-          } else {
-            result.innerHTML = '<p style="color: #c62828;">Failed to create paste</p>';
-          }
-        } catch (err) {
-          result.innerHTML = '<p style="color: #c62828;">Network error</p>';
-        }
+  </div>
+  
+  <script>
+    async function createPaste() {
+      const content = document.getElementById('content').value;
+      const language = document.getElementById('language').value;
+      const result = document.getElementById('result');
+      
+      if (!content.trim()) {
+        result.innerHTML = '<p style="color: #c62828;">Please enter content</p>';
+        return;
       }
       
-      async function loadPastes() {
-        try {
-          const res = await fetch('/api/pastes');
-          if (res.ok) {
-            const data = await res.json();
-            const container = document.getElementById('pastes');
-            
-            if (data.pastes.length === 0) {
-              container.innerHTML = '<p>No pastes yet</p>';
-              return;
-            }
-            
-            container.innerHTML = data.pastes.map(paste => {
-              const shortContent = paste.content.length > 200 
-                ? paste.content.substring(0, 200) + '...'
-                : paste.content;
-                
-              return '<div class="paste-item">' +
-                '<div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">' +
-                  '<strong>' + paste.language.toUpperCase() + '</strong>' +
-                  '<small>' + new Date(paste.created_at).toLocaleString() + '</small>' +
-                '</div>' +
-                '<div class="paste-content">' + shortContent + '</div>' +
-                '<div style="display: flex; gap: 0.5rem;">' +
-                  '<button onclick="viewPaste(\\'' + paste.id + '\\')" style="background: #4caf50;">View</button>' +
-                  '<button onclick="copyUrl(\\'' + paste.id + '\\')" style="background: #ff9800;">Copy URL</button>' +
-                  '<button onclick="deletePaste(\\'' + paste.id + '\\')" style="background: #f44336;">Delete</button>' +
-                '</div>' +
-              '</div>';
-            }).join('');
-          }
-        } catch (err) {
-          console.error('Error loading pastes:', err);
-        }
-      }
+      result.innerHTML = '<p>Creating...</p>';
+      const button = document.querySelector('button');
+      button.disabled = true;
       
-      function viewPaste(id) {
-        window.location.href = '/' + id;
-      }
-      
-      function copyUrl(id) {
-        navigator.clipboard.writeText(window.location.origin + '/' + id);
-        alert('URL copied!');
-      }
-      
-      async function deletePaste(id) {
-        if (!confirm('Delete this paste?')) return;
+      try {
+        const res = await fetch('/api/pastes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, language })
+        });
         
-        try {
-          await fetch('/api/pastes/' + id, { method: 'DELETE' });
+        if (res.ok) {
+          const data = await res.json();
+          result.innerHTML = '<p style="color: #2e7d32;">✅ Paste created! <a href="/' + data.id + '" style="color: #007acc;">View paste</a></p>';
+          document.getElementById('content').value = '';
           loadPastes();
-        } catch (err) {
-          alert('Failed to delete');
+        } else {
+          result.innerHTML = '<p style="color: #c62828;">Failed to create paste</p>';
         }
+      } catch (err) {
+        result.innerHTML = '<p style="color: #c62828;">Network error</p>';
+      } finally {
+        button.disabled = false;
+        button.innerHTML = 'Create Paste';
       }
+    }
+    
+    async function loadPastes() {
+      try {
+        const res = await fetch('/api/pastes');
+        if (res.ok) {
+          const data = await res.json();
+          const container = document.getElementById('pastes');
+          
+          if (data.pastes.length === 0) {
+            container.innerHTML = '<p>No pastes yet</p>';
+            return;
+          }
+          
+          container.innerHTML = data.pastes.map(paste => {
+            const shortContent = paste.content.length > 200 
+              ? paste.content.substring(0, 200) + '...'
+              : paste.content;
+              
+            return '<div class="paste-item">' +
+              '<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">' +
+                '<strong>' + paste.language.toUpperCase() + '</strong>' +
+                '<small>' + new Date(paste.created_at).toLocaleDateString() + '</small>' +
+              '</div>' +
+              '<div class="paste-content">' + escapeHtml(shortContent) + '</div>' +
+              '<div style="display: flex; gap: 8px;">' +
+                '<button onclick="viewPaste(\\'' + paste.id + '\\')" style="background: #4caf50; padding: 6px 12px; font-size: 14px;">View</button>' +
+                '<button onclick="copyUrl(\\'' + paste.id + '\\')" style="background: #ff9800; padding: 6px 12px; font-size: 14px;">Copy URL</button>' +
+                '<button onclick="deletePaste(\\'' + paste.id + '\\')" style="background: #f44336; padding: 6px 12px; font-size: 14px;">Delete</button>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Error loading pastes:', err);
+      }
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function viewPaste(id) {
+      window.location.href = '/' + id;
+    }
+    
+    function copyUrl(id) {
+      navigator.clipboard.writeText(window.location.origin + '/' + id);
+      alert('URL copied!');
+    }
+    
+    async function deletePaste(id) {
+      if (!confirm('Delete this paste?')) return;
       
-      // Load pastes on page load
-      document.addEventListener('DOMContentLoaded', loadPastes);
-    </script>
-  </body>
+      try {
+        await fetch('/api/pastes/' + id, { method: 'DELETE' });
+        loadPastes();
+      } catch (err) {
+        alert('Failed to delete');
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadPastes);
+  </script>
+</body>
 </html>`;
 
 export default {
@@ -260,10 +298,28 @@ async function servePastePage(pasteId: string, env: Env): Promise<Response> {
     const paste = await env.PASTES.get<PasteData>(pasteId, 'json');
     
     if (!paste) {
-      return new Response('Paste not found or expired', { status: 404 });
+      const notFoundHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paste Not Found</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; text-align: center; }
+    h1 { color: #666; }
+    a { color: #007acc; }
+  </style>
+</head>
+<body>
+  <h1>Paste not found or expired</h1>
+  <p><a href="/">← Back to pastebin</a></p>
+</body>
+</html>`;
+      return new Response(notFoundHtml, { 
+        status: 404, 
+        headers: { 'Content-Type': 'text/html' } 
+      });
     }
     
-    // Escape HTML in paste content
     const escapedContent = paste.content
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -273,89 +329,120 @@ async function servePastePage(pasteId: string, env: Env): Promise<Response> {
     
     const pasteHTML = `<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Paste: ${pasteId}</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: #f5f5f5;
-        min-height: 100vh;
-        padding: 2rem;
-      }
-      .container { 
-        max-width: 800px; 
-        margin: 0 auto;
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-      h1 { color: #333; margin-bottom: 1rem; }
-      .paste-info {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 6px;
-        margin: 1rem 0;
-      }
-      .paste-content {
-        font-family: 'Courier New', monospace;
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 6px;
-        white-space: pre-wrap;
-        word-break: break-word;
-        margin: 1rem 0;
-      }
-      button {
-        background: #007acc;
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-right: 0.5rem;
-        margin-top: 1rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paste: ${pasteId}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    @media (min-width: 768px) {
+      body { padding: 24px; }
+    }
+    .container { 
+      max-width: 800px; 
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    @media (min-width: 768px) {
+      .container { padding: 24px; }
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    h1 { 
+      color: #333; 
+      font-size: 20px;
+    }
+    @media (min-width: 768px) {
+      h1 { font-size: 24px; }
+    }
+    .paste-info {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .paste-content {
+      font-family: 'Courier New', monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+      max-height: 60vh;
+      overflow: auto;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .actions button {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .copy-btn { background: #007acc; color: white; }
+    .url-btn { background: #4caf50; color: white; }
+    .back-btn { background: #f0f0f0; color: #333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
       <h1>📝 Paste: ${pasteId}</h1>
-      
-      <div class="paste-info">
-        <p><strong>Language:</strong> ${paste.language.toUpperCase()}</p>
-        <p><strong>Created:</strong> ${new Date(paste.created_at).toLocaleString()}</p>
-        <p><strong>Expires:</strong> ${new Date(paste.expires_at).toLocaleString()}</p>
-      </div>
-      
-      <div class="paste-content">${escapedContent}</div>
-      
-      <div>
-        <button onclick="copyContent()">📋 Copy Content</button>
-        <button onclick="copyUrl()">🔗 Copy URL</button>
-        <button onclick="goHome()">← Back Home</button>
-      </div>
+      <button class="back-btn" onclick="window.location.href='/'">← Back</button>
     </div>
     
-    <script>
-      function copyContent() {
-        navigator.clipboard.writeText(${JSON.stringify(paste.content)});
-        alert('Content copied!');
-      }
-      
-      function copyUrl() {
-        navigator.clipboard.writeText(window.location.href);
-        alert('URL copied!');
-      }
-      
-      function goHome() {
-        window.location.href = '/';
-      }
-    </script>
-  </body>
+    <div class="paste-info">
+      <p><strong>Language:</strong> ${paste.language.toUpperCase()}</p>
+      <p><strong>Created:</strong> ${new Date(paste.created_at).toLocaleString()}</p>
+      <p><strong>Expires:</strong> ${new Date(paste.expires_at).toLocaleString()}</p>
+    </div>
+    
+    <div class="paste-content">${escapedContent}</div>
+    
+    <div class="actions">
+      <button class="copy-btn" onclick="copyContent()">📋 Copy Content</button>
+      <button class="url-btn" onclick="copyUrl()">🔗 Copy URL</button>
+      <button class="back-btn" onclick="window.location.href='/'">🏠 Home</button>
+    </div>
+  </div>
+  
+  <script>
+    function copyContent() {
+      navigator.clipboard.writeText(${JSON.stringify(paste.content)});
+      alert('Content copied to clipboard!');
+    }
+    
+    function copyUrl() {
+      navigator.clipboard.writeText(window.location.href);
+      alert('URL copied to clipboard!');
+    }
+  </script>
+</body>
 </html>`;
     
     return new Response(pasteHTML, {
