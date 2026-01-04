@@ -29,6 +29,35 @@ It correctly bundles Solid in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.<br>
 Your app is ready to be deployed!
 
+## development
+
+For local development you can use below command to start the application.
+
+```
+npx wrangler dev
+```
+
 ## Deployment
 
 You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)
+
+```
+export CLOUDFLARE_API_TOKEN="your-cloudflare-token-here"
+```
+
+### Instructions for creating a Cloudflare API token
+
+1. Go to https://dash.cloudflare.com/profile/api-tokens in your browser
+2. Click "Create Token"
+3. Use the "Edit Cloudflare Workers" template
+4. Make sure it has permissions for:
+  - Account: Workers KV Storage: Edit
+  - Account: Workers Scripts: Edit
+5. Continue to summary and create the token
+6. Copy the Cloudflare API token
+
+Then you may run, below command to deploy to cloudflare.
+
+```
+npm run deploy
+```
