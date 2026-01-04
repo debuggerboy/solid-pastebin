@@ -261,6 +261,37 @@ const HTML = `<!DOCTYPE html>
     
     document.addEventListener('DOMContentLoaded', loadPastes);
   </script>
+<footer style="
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+">
+  <div style="
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  ">
+    <div>
+      <span style="
+        display: inline-block;
+        transform: scaleX(-1);
+        margin-right: 0.25rem;
+        font-weight: bold;
+      ">©</span>
+      Copyleft 2025, All Wrongs Reserved.
+    </div>
+    <div>
+      Built with Solid.js + Cloudflare Workers ❤️
+    </div>
+  </div>
+</footer>
 </body>
 </html>`;
 
@@ -312,6 +343,37 @@ async function servePastePage(pasteId: string, env: Env): Promise<Response> {
 <body>
   <h1>Paste not found or expired</h1>
   <p><a href="/">← Back to pastebin</a></p>
+<footer style="
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+">
+  <div style="
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  ">
+    <div>
+      <span style="
+        display: inline-block;
+        transform: scaleX(-1);
+        margin-right: 0.25rem;
+        font-weight: bold;
+      ">©</span>
+      Copyleft 2025, All Wrongs Reserved.
+    </div>
+    <div>
+      Built with Solid.js + Cloudflare Workers ❤️
+    </div>
+  </div>
+</footer>
 </body>
 </html>`;
       return new Response(notFoundHtml, { 
@@ -442,6 +504,38 @@ async function servePastePage(pasteId: string, env: Env): Promise<Response> {
       alert('URL copied to clipboard!');
     }
   </script>
+<!-- Add this right before </body> -->
+<footer style="
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+">
+  <div style="
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  ">
+    <div>
+      <span style="
+        display: inline-block;
+        transform: scaleX(-1);
+        margin-right: 0.25rem;
+        font-weight: bold;
+      ">©</span>
+      Copyleft 2025, All Wrongs Reserved.
+    </div>
+    <div>
+      Built with Solid.js + Cloudflare Workers ❤️
+    </div>
+  </div>
+</footer>
 </body>
 </html>`;
     
